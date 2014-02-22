@@ -10,6 +10,7 @@
 #define OpenGLCurso_draw_h
 
 void inciarlizar_motor_render(float m_viewWidth, float m_viewHeight);
+void update();
 void draw();
 void destroy();
 

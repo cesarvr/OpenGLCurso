@@ -31,23 +31,16 @@ GLuint vbo;
 GLuint indice;
 
 GLuint _shd_posicion;
-GLuint _shd_color;
+GLuint _shd_normal;
 GLuint _shd_textura;
 GLuint _shd_mvp;
 GLuint _shd_text;
 
 GLuint textura_id;
-GLfloat modelView[16];
-GLfloat projection[16];
-GLfloat mvp[16];
-GLfloat mv[16];
-GLfloat look[16] = {0.59999996, -0.4115966,  0.68599439, 0.0f,
-                    0.0f,        0.85749292, 0.51449579, 0.0f,
-                   -0.79999995, -0.30869746, 0.51449579, 0.0f,
-                    0.0f      ,  0.0f,       -5.8309526, 1.0f};
-
-
-
+GLfloat mPerspectiva[16];
+GLfloat mModeloCamara[16];
+GLfloat mMVP[16];
+GLfloat mModelo[16];
 
 
 int cantidad_vertices = 0;
@@ -70,6 +63,7 @@ typedef struct _Vertex{
     
     creamos los objetos buffers para OpenGL.
  
+    y configuramos la perspectiva.
  
  */
 
@@ -83,24 +77,39 @@ void inciarlizar_motor_render(float m_viewWidth, float m_viewHeight){
     
     
     _shd_posicion = getParametro( "position");
-    _shd_color    = getParametro( "color");
+    _shd_normal    = getParametro( "normal");
     _shd_textura  = getParametro("textura_cord");
     _shd_mvp      = getUniform( "MVP");
     _shd_text     = getUniform("textura");
     
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
-    // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
 
+    /*
+        Perspectiva
+     */
+    mtxLoadPerspective(mPerspectiva, 45, (float)m_viewWidth / (float)m_viewHeight,1.0,10000);
+    mtxLoadIdentity(mModelo);
+    
+    
+    /*
+        Camara
+     4.0f, 3.0f, 3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
+     */
     
     
     
-    mtxLoadPerspective(projection, 45, (float)m_viewWidth / (float)m_viewHeight,1.0,10000);
-    mtxLoadIdentity(modelView);
+    float vecEye[3] = {2.0f, 0.0f, 3.0f};
+    float vecCentro[3] = {0.0, 0.0, 0.0};
+    float vecUp[3] = {0.0, 1.0, 0.0};
     
-	mtxTranslateApply(modelView, 0.0f, 0.0f, 0.0f);
-	mtxMultiply(mvp, projection, look);
+    mtxLookAt(mModeloCamara, vecEye, vecCentro, vecUp);
+    
+    
+    
+    //colocamos el modelo en las cordenadas 0.0f en la x,y,z
+	mtxTranslateApply(mModelo, 0.0f, 0.0f, 0.0f);
 
     
     crear_buffers();
@@ -120,53 +129,53 @@ void crear_buffers(){
 #define TEX_COORD_MIN   0.0f
     
     
-    float vertx1 =  1.5;
+    float vertx1 =  0.5;
     float vertx2 = -0.5;
-    float verty1 =  1.5;
-    float verty2 = -1.5;
+    float verty1 =  0.5;
+    float verty2 = -0.5;
     
-    float vertz1 =  1.0;
-    float vertz2 = -1.0;
+    float vertz1 =  0.5;
+    float vertz2 = -0.5;
     
     
     float vertices[]= {
         
         //0-3
-        vertx1, verty1, vertz1, 0.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //0
-        vertx2, verty1, vertz1, 0.1f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //1
-        vertx1, verty2, vertz1, 0.0f, 0.1f, 0.1f, TEX_COORD_MIN, TEX_COORD_MAX, //2
-        vertx2, verty2, vertz1, 0.0f, 0.1f, 0.1f, TEX_COORD_MAX, TEX_COORD_MAX, //3
+        vertx1, verty1, vertz1, 0.0f, 0.0f, 1.0f, TEX_COORD_MIN, TEX_COORD_MIN, //0
+        vertx2, verty1, vertz1, 0.0f, 0.0f, 1.0f, TEX_COORD_MAX, TEX_COORD_MIN, //1
+        vertx1, verty2, vertz1, 0.0f, 0.0f, 1.0f, TEX_COORD_MIN, TEX_COORD_MAX, //2
+        vertx2, verty2, vertz1, 0.0f, 0.0f, 1.0f, TEX_COORD_MAX, TEX_COORD_MAX, //3
         
         //4-7
-        vertx1, verty1, vertz2, 0.0f, 1.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //4
-        vertx2, verty1, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //5
-        vertx1, verty2, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MAX, //6
-        vertx2, verty2, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MAX, //7
+        vertx1, verty1, vertz2, 0.0f, 0.0f, -1.0f, TEX_COORD_MIN, TEX_COORD_MIN, //4
+        vertx2, verty1, vertz2, 0.0f, 0.0f, -1.0f, TEX_COORD_MAX, TEX_COORD_MIN, //5
+        vertx1, verty2, vertz2, 0.0f, 0.0f, -1.0f, TEX_COORD_MIN, TEX_COORD_MAX, //6
+        vertx2, verty2, vertz2, 0.0f, 0.0f, -1.0f, TEX_COORD_MAX, TEX_COORD_MAX, //7
         
         //8-11
-        vertx1, verty1, vertz1, 0.0f, 1.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //8
-        vertx1, verty2, vertz1, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //9
-        vertx1, verty1, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MAX, //10
-        vertx1, verty2, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MAX, //11
+        vertx1, verty1, vertz1,  1.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //8
+        vertx1, verty2, vertz1,  1.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //9
+        vertx1, verty1, vertz2,  1.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MAX, //10
+        vertx1, verty2, vertz2,  1.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MAX, //11
         
         //12-15
-        vertx2, verty1, vertz1, 0.0f, 1.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //12
-        vertx2, verty2, vertz1, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //13
-        vertx2, verty1, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MAX, //14
-        vertx2, verty2, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MAX, //15
+        vertx2, verty1, vertz1, -1.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //12
+        vertx2, verty2, vertz1, -1.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //13
+        vertx2, verty1, vertz2, -1.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MAX, //14
+        vertx2, verty2, vertz2, -1.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MAX, //15
         
         //16-19
-        vertx1, verty1, vertz1, 0.0f, 1.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //12
-        vertx2, verty1, vertz1, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //13
-        vertx1, verty1, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MAX, //14
-        vertx2, verty1, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MAX, //15
+        vertx1, verty1, vertz1, 0.0f, 1.0f,  0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //12
+        vertx2, verty1, vertz1, 0.0f, 1.0f,  0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //13
+        vertx1, verty1, vertz2, 0.0f, 1.0f,  0.0f, TEX_COORD_MIN, TEX_COORD_MAX, //14
+        vertx2, verty1, vertz2, 0.0f, 1.0f,  0.0f, TEX_COORD_MAX, TEX_COORD_MAX, //15
         
         
         //20-23
-        vertx1, verty2, vertz1, 0.0f, 1.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //12
-        vertx2, verty2, vertz1, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //13
-        vertx1, verty2, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MAX, //14
-        vertx2, verty2, vertz2, 0.0f, 0.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MAX, //15
+        vertx1, verty2, vertz1, 0.0f, -1.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MIN, //12
+        vertx2, verty2, vertz1, 0.0f, -1.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MIN, //13
+        vertx1, verty2, vertz2, 0.0f, -1.0f, 0.0f, TEX_COORD_MIN, TEX_COORD_MAX, //14
+        vertx2, verty2, vertz2, 0.0f, -1.0f, 0.0f, TEX_COORD_MAX, TEX_COORD_MAX, //15
         
 
     };
@@ -181,7 +190,6 @@ void crear_buffers(){
     tamano_total = (POSICION_DATA_TAMANO + COLOR_DATA_TAMANO + TEXTURA_DATA_TAMANO) * sizeof(float);
     
     
-    
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -190,54 +198,72 @@ void crear_buffers(){
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indice);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     
-    
-    
 }
 
-float rot = 1.0f;
+
+float rot = 0.0f;
+
+void update(){
+    rot+=0.1f;
+    
+    glUseProgram(_program);
+    
+    mtxRotateApply(mModelo, 1.0f, 0.1f, 0.1f, 0.0f);
+    
+    float mMV[16];
+    mtxLoadIdentity(mMV);
+    
+    mtxMultiply(mMV, mModeloCamara, mModelo);
+
+	mtxMultiply(mMVP, mPerspectiva, mMV);
+    
+    glUniformMatrix4fv(_shd_mvp, 1, GL_FALSE, mMVP);
+    
+    glUseProgram(0);
+
+}
+
 
 
 void draw() {
     
     
-    rot+=0.1f;
    
-   
-    mtxRotateApply(modelView, 1.0f, 0.1f, 0.1f, 0.0f);
-
-    mtxMultiply(mv, look, modelView);
-	mtxMultiply(mvp, projection, mv);
-
     
     glUseProgram(_program);
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glUniformMatrix4fv(_shd_mvp, 1, GL_FALSE, mvp);
-    
-    
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glVertexAttribPointer(_shd_posicion,
+                          POSICION_DATA_TAMANO,
+                          GL_FLOAT, GL_FALSE,
+                          tamano_total,
+                          0);
     
-    
-    //                    SHADER VALUE          3              TIPO     NORMALIZADO?       PACK        LOCALIZACION
-    glVertexAttribPointer(_shd_posicion, POSICION_DATA_TAMANO, GL_FLOAT, GL_FALSE,     tamano_total,       0);
     glEnableVertexAttribArray(_shd_posicion);
     
     
    
-    //                    SHADER VALUE          3         TIPO    NORMALIZADO?             PACK                         LOCALIZACION
-    glVertexAttribPointer(_shd_color, COLOR_DATA_TAMANO, GL_FLOAT, GL_FALSE,          tamano_total, (GLvoid*) (sizeof(float) * POSICION_DATA_TAMANO));
-    glEnableVertexAttribArray(_shd_color);
+    glVertexAttribPointer(_shd_normal,
+                          COLOR_DATA_TAMANO,
+                          GL_FLOAT, GL_FALSE,
+                          tamano_total, (GLvoid*) (sizeof(float) * POSICION_DATA_TAMANO));
+    
+    glEnableVertexAttribArray(_shd_normal);
     
     
     
-     //                    SHADER VALUE          3             TIPO    NORMALIZADO?   PACK                         LOCALIZACION
-    glVertexAttribPointer(_shd_textura, TEXTURA_DATA_TAMANO, GL_FLOAT, GL_FALSE, tamano_total,   (GLvoid*) (sizeof(float) * (POSICION_DATA_TAMANO + COLOR_DATA_TAMANO)));
+    
+    glVertexAttribPointer(_shd_textura,
+                          TEXTURA_DATA_TAMANO,
+                          GL_FLOAT, GL_FALSE,
+                          tamano_total,
+                          (GLvoid*) (sizeof(float) * (POSICION_DATA_TAMANO + COLOR_DATA_TAMANO)));
+    
+    
     glEnableVertexAttribArray(_shd_textura);
-    
-    //glDrawArrays(GL_TRIANGLES, 0, cantidad_vertices );
-    
-    
     
     //Usamos indices
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indice);

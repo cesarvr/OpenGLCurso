@@ -50,6 +50,10 @@
 #ifndef __MATRIX_UTIL_H__
 #define __MATRIX_UTIL_H__
 
+
+
+#include "vectorUtil.h"
+
 // Matrix is a column major floating point array
 
 // All matrices are 4x4 by unless the mtx3x3 prefix is specified in the function name
@@ -153,6 +157,9 @@ void mtx3x3Transpose(float* mtx, const float* src);
 
 // 3x3 MTX = 3x3 SRC^-1
 void mtx3x3Invert(float* mtx, const float* src);
+
+// configura la camara.
+void mtxLookAt(float *mtx, float *eye, float *center, float *up);
 
 #endif //__MATRIX_UTIL_H__
 

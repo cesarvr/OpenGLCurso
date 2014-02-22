@@ -81,7 +81,7 @@ void mtxMultiply(float* ret, const float* lhs, const float* rhs)
 
 void mtxLoadPerspective(float* mtx, float fov, float aspect, float nearZ, float farZ)
 {
-	float f = 1.0f / tanf( (fov * (M_PI/180)) / 2.0f);
+	float f = 1.0f / tanf( (fov * (M_PI/180) ) / 2.0f);
 	
 	mtx[0] = f / aspect;
 	mtx[1] = 0.0f;
@@ -109,28 +109,103 @@ void mtxLoadPerspective(float* mtx, float fov, float aspect, float nearZ, float 
 
 
 void mtxLookAt(float *mtx, float *eye, float *center, float *up){
+    
+    
+    float vec3f[3];
+    
+    
+    // 'f = center - eye
+    vec3Subtract(vec3f, center, eye);
+    
+    //Normalizamos la distancia entre [eye-center], para saber solo la direccion. 'f = f / |f|
+    vec3Normalize(vec3f, vec3f);
+    
+    //Normalizamos [up], para saber solo la direccion.  'up = up / |up|
+    vec3Normalize(up, up);
+
+    
+    // s = 'f x 'up
+    float vec3s[3] = {0.0,0.0,0.0};
+    
+    vec3CrossProduct(vec3s, vec3f, up);
+    
+    //u = s x f
+    float vec3u[3] = {0.0,0.0,0.0};
+    
+    vec3CrossProduct(vec3u, vec3s, vec3f);
+    
+    //invertimos a f osea -x, -y, -z
+    float vec3negf[3] = {0.0,0.0,0.0};
+    
+    vec3Negate(vec3negf, vec3f);
+    
+    
+    
+    
     /*
-    float n[3] = {0,0,0};
-    float u[3] = {0,0,0};
-    float v[3] = {0,0,0};
+     construimos matriz 4x4 M
+     
+     | sx,  sy,  sz, 0|
+     M = | ux,  uy,  uz, 0|
+     |-fx, -fy, -fz, 0|
+     | 0,   0,   0,  1|
+     
+     
+     Matriz OpeGL tiene esta forma.
+     
+     [ 0 4  8 12 ]
+     [ 1 5  9 13 ]
+     [ 2 6 10 14 ]
+     [ 3 7 11 15 ]
+     
+     llenamos el array con valores de matriz de identidad.
+     
+     */
     
-    float negate_n[3] ={0,0,0};
-    float negate_u[3] ={0,0,0};
-    float negate_v[3] ={0,0,0};
-    float negate_center[3] = {0,0,0};
+    float M[16];
+    mtxLoadIdentity(M);
+    
+    M[0] = vec3s[0];     M[4] = vec3s[1];     M[8]  = vec3s[2];
+    M[1] = vec3u[0];     M[5] = vec3u[1];     M[9]  = vec3u[2];
+    M[2] = vec3negf[0];  M[6] = vec3negf[1];  M[10] = vec3negf[2];
+    
+    /*
+     construimos matriz 4x4 T para retornara M al origen, rotas algo este suele moverse, supongo que con esto lo devolvemos
+     a su origen.
+     
+     | 0,  0,  0,  -ex|
+     T =  | 0,  0,  0,  -ey|
+     | 0,  0,  0,  -ez|
+     | 0,  0,  0,   1 |
+     
+     
+     Matriz OpeGL tiene esta forma.
+     
+     [ 0 4  8 12 ]
+     [ 1 5  9 13 ]
+     [ 2 6 10 14 ]
+     [ 3 7 11 15 ]
+     
+     
+     */
+    
+    float T[16];
+    mtxLoadIdentity(T);
     
     
-    vec3Negate(negate_center, center);
-    
-    float reslt[3] = {0,0,0};
-    vec3Add(reslt,n,center);
+    T[12] = -eye[0]; T[13] = -eye[1]; T[14] = -eye[2];
     
     
-    float norm[3] = {0,0,0};
     
-    vec3Normalize(norm);
+    /*
+     
+     ultimo paso multiplicar ambas matrices.
+     
+     LookAt = MT
+     */
     
-    */
+    mtxMultiply(mtx, M, T);
+    
     
     
 }

@@ -27,7 +27,6 @@ void error_callback(int error, const char* description)
 
 int main(int argc, const char * argv[])
 {
-
     @autoreleasepool {
         
 
@@ -36,19 +35,21 @@ int main(int argc, const char * argv[])
             printf("Error iniciando GLFW");
             exit(EXIT_FAILURE);
         }
+        
+        
         //manejador de errores;
         
        /*
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);1
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         */
         
         
         glfwSetErrorCallback(error_callback);
         
-        GLFWwindow* window = glfwCreateWindow(SCREEN_ANCHO, SCREEN_ALTO, "Charla GUL", NULL, NULL);
+        GLFWwindow* window = glfwCreateWindow(SCREEN_ANCHO, SCREEN_ALTO, "Taller", NULL, NULL);
         
         
         if (!window)
@@ -73,7 +74,7 @@ int main(int argc, const char * argv[])
         cargarShaders(PATH_VERTEX, PATH_FRAGMENT);
         
         
-    // GLKMatrix4 matCam =  GLKMatrix4MakeLookAt(4.0f, 3.0f, 3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+       // GLKMatrix4 matCam =  GLKMatrix4MakeLookAt(4.0f, 3.0f, 3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
         
         
         // Iniciar
@@ -83,6 +84,7 @@ int main(int argc, const char * argv[])
         
         while (!glfwWindowShouldClose(window))
         {
+            update();
             draw();
             glfwSwapBuffers(window);
             glfwPollEvents();
@@ -96,7 +98,7 @@ int main(int argc, const char * argv[])
 
         
         
-    }
+    } // remover
     return 0;
 }
 
